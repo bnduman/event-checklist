@@ -43,12 +43,18 @@ python -m http.server 8000
 Any static host works — upload the folder as-is:
 
 - **GitHub Pages**: push to a repo, then **Settings → Pages → Source: `main` / root**.
-  Site goes live at `https://<user>.github.io/<repo>/`.
-- **Netlify**: drag the folder onto https://app.netlify.com/drop
-- **Vercel**: `npx vercel` in this folder
+  Site goes live at `https://<user>.github.io/<repo>/` (public).
+- **Cloudflare Pages**: connect the repo; adds a free, un-bypassable **login** in front
+  of the site. Recommended for private team use — see **[LOGIN_SETUP.md](LOGIN_SETUP.md)**.
+- **Netlify** / **Vercel**: drag-and-drop or `npx vercel`.
 
-For a team, enable **[live sync](SUPABASE_SETUP.md)** so everyone shares one dataset.
-Without it, each person's edits stay in their own browser (still fine as a shared
+For a team you'll usually want both:
+
+- **[Live sync](SUPABASE_SETUP.md)** — everyone shares one dataset that updates in real time.
+- **[Login](LOGIN_SETUP.md)** — restrict who can open the site (also keeps the Supabase key
+  off the public web).
+
+Without sync, each person's edits stay in their own browser (still fine as a shared
 read-only view; use **Export CSV** to feed changes back into the master spreadsheet).
 
 The asset links in `index.html` carry a `?v=` version tag (e.g. `app.js?v=3`) so browsers
