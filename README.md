@@ -1,0 +1,69 @@
+# Event Checklist — Communications Tracker
+
+A single-page web app for tracking event publicity: which channels (social media, news,
+webpage, poster, e-mail, uni event site, coverage, recap) each event needs, who on the
+team is responsible for each, and whether the event is fully handled.
+
+Data was imported from `Event Checklist BETA.xlsx` (sheets **2025** and **2026**, 47 events).
+
+## Features
+
+- **Timeline view** — events grouped by month, with date cards, event-type tags,
+  status (Done / In progress / Planned), a "Next up" highlight, and per-channel
+  assignment chips.
+- **Matrix view** — the classic spreadsheet grid, one row per event, one column per channel.
+- **Team view** — per-person workload: total tasks, breakdown by channel, upcoming tasks.
+- **Add events** — the **+ Add event** button, the floating **+** button (bottom-right),
+  or pressing **N** opens a dialog: enter a title (the event type is auto-detected but can
+  be changed), pick start/end dates, and tick which of the nine channels the event needs
+  (unticked channels are marked N/A). The new event slots into the right month and year.
+- **Editing** — click any channel chip/cell to assign or unassign people (multi-select),
+  mark a channel N/A, or add new team members. Toggle Done, delete events.
+- **Filters** — search, status pills, person filter, year tabs.
+- **Export CSV** — download the current year in the original column layout (opens in Excel).
+- **Persistence** — edits are saved in the browser by default. **Reset** restores
+  the original spreadsheet data.
+- **Live team sync (optional)** — add Supabase credentials to `config.js` and the whole
+  team edits one shared copy that updates in real time. A status pill in the top bar shows
+  *Local only* / *Live sync on*. Setup: **[SUPABASE_SETUP.md](SUPABASE_SETUP.md)**.
+
+No build step and no bundler. Runs as plain static files; live sync (if enabled) loads the
+Supabase client from a CDN at runtime.
+
+## Run locally
+
+Open `index.html` directly in a browser, or serve the folder:
+
+```
+python -m http.server 8000
+```
+
+## Deploy
+
+Any static host works — upload the folder as-is:
+
+- **GitHub Pages**: push to a repo, then **Settings → Pages → Source: `main` / root**.
+  Site goes live at `https://<user>.github.io/<repo>/`.
+- **Netlify**: drag the folder onto https://app.netlify.com/drop
+- **Vercel**: `npx vercel` in this folder
+
+For a team, enable **[live sync](SUPABASE_SETUP.md)** so everyone shares one dataset.
+Without it, each person's edits stay in their own browser (still fine as a shared
+read-only view; use **Export CSV** to feed changes back into the master spreadsheet).
+
+The asset links in `index.html` carry a `?v=` version tag (e.g. `app.js?v=3`) so browsers
+don't serve a stale copy after you redeploy. If you change `app.js`, `styles.css`,
+`config.js`, or `data.js`, bump that number (`?v=4`, …) so everyone gets the update.
+
+## Files
+
+| File | Purpose |
+|---|---|
+| `index.html` | page shell |
+| `styles.css` | all styling |
+| `app.js` | views, editing, filtering, export |
+| `data.js` | seed data generated from the Excel file |
+| `config.js` | Supabase credentials for optional live sync (blank = single-browser mode) |
+| `sync.js` | live shared-data layer (dormant unless `config.js` is filled in) |
+| `generate_data.py` | regenerates `data.js` from the spreadsheet (edit `SRC`/`OUT` paths, needs `openpyxl`) |
+| `serve.py` | optional local dev server |

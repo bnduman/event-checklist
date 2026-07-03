@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Event Checklist — Communications Tracker</title>
+<meta name="description" content="Track publicity channels, assignments and coverage for every event.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✓</text></svg>">
+<link rel="stylesheet" href="styles.css?v=3">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-mark">✓</div>
+      <div>
+        <h1>Event Checklist</h1>
+        <p class="tagline">Communication &amp; coverage tracker</p>
+      </div>
+    </div>
+
+    <div class="header-progress">
+      <svg class="ring" viewBox="0 0 72 72" aria-hidden="true">
+        <circle class="ring-bg" cx="36" cy="36" r="30"></circle>
+        <circle class="ring-fg" id="ringFg" cx="36" cy="36" r="30"></circle>
+      </svg>
+      <div class="ring-label">
+        <strong id="ringPct">0%</strong>
+        <span>done</span>
+      </div>
+    </div>
+
+    <div class="header-stats" id="headerStats"></div>
+  </div>
+</header>
+
+<nav class="controls">
+  <div class="controls-inner">
+    <div class="year-tabs" id="yearTabs" role="tablist" aria-label="Year"></div>
+
+    <div class="view-switch" id="viewSwitch" role="tablist" aria-label="View">
+      <button data-view="timeline" class="active">Timeline</button>
+      <button data-view="matrix">Matrix</button>
+      <button data-view="team">Team</button>
+    </div>
+
+    <div class="filters">
+      <input type="search" id="searchBox" placeholder="Search events…" aria-label="Search events">
+      <div class="status-pills" id="statusPills">
+        <button data-status="all" class="active">All</button>
+        <button data-status="done">Done</button>
+        <button data-status="progress">In progress</button>
+        <button data-status="planned">Planned</button>
+      </div>
+      <select id="personFilter" aria-label="Filter by person">
+        <option value="all">Everyone</option>
+      </select>
+    </div>
+
+    <div class="actions">
+      <span id="syncStatus" class="sync-pill" data-state="local" hidden>Local only</span>
+      <button class="btn btn-primary" id="addEventBtn">+ Add event</button>
+      <button class="btn" id="exportCsvBtn" title="Download this year as CSV">Export CSV</button>
+      <button class="btn btn-ghost" id="resetBtn" title="Restore the original spreadsheet data">Reset</button>
+    </div>
+  </div>
+</nav>
+
+<main id="mainView" class="main"></main>
+
+<footer class="site-footer">
+  <p>Imported from <em>Event Checklist BETA.xlsx</em> · use <strong>Export CSV</strong> to download a copy</p>
+</footer>
+
+<!-- assignment editor popover -->
+<div id="popover" class="popover" hidden></div>
+
+<!-- add event modal -->
+<dialog id="addDialog" class="modal">
+  <form method="dialog" id="addForm">
+    <h2>Add event</h2>
+    <label>Title
+      <input type="text" id="newTitle" required placeholder="e.g. JCMML with …">
+    </label>
+    <div class="field-row">
+      <label>Start date
+        <input type="date" id="newStart" required>
+      </label>
+      <label>End date <span class="muted">(optional)</span>
+        <input type="date" id="newEnd">
+      </label>
+    </div>
+    <label>Type
+      <select id="newType"></select>
+    </label>
+    <fieldset class="chan-picker">
+      <legend>Channels needed <span class="muted">— unchecked = not applicable</span></legend>
+      <div id="newChannels" class="chan-toggles"></div>
+    </fieldset>
+    <div class="modal-actions">
+      <button type="button" class="btn" id="cancelAdd">Cancel</button>
+      <button type="submit" class="btn btn-primary">Add event</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- floating quick-add button -->
+<button id="fabAdd" class="fab" title="Add event (press N)" aria-label="Add event">+</button>
+
+<script src="config.js?v=3"></script>
+<script src="data.js?v=3"></script>
+<script src="app.js?v=3"></script>
+<script type="module" src="sync.js?v=3"></script>
+</body>
+</html>
