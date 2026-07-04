@@ -14,7 +14,7 @@
    ============================================================================ */
 const cfg = window.APP_CONFIG || {};
 const URL_ = (cfg.SUPABASE_URL || "").trim();
-const KEY = (cfg.SUPABASE_ANON_KEY || "").trim();
+const hasKey = !!((cfg.SUPABASE_ANON_KEY || "").trim() || cfg.SUPABASE_ANON_KEY_ENC);
 const TABLE = (cfg.TABLE || "checklist").trim();
 const ROW_ID = 1;
 const clientId = Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -30,13 +30,20 @@ function setStatus(state, text) {
 // default: dormant, edits stay local
 window.CloudSync = { enabled: false, push() {} };
 
-if (!URL_ || !KEY) {
+if (!URL_ || !hasKey) {
   setStatus("local", "Local only");
 } else {
-  boot();
+  // The key may be locked behind the password gate — wait for it (resolves
+  // immediately when there's no password).
+  const gate = window.Auth
+    ? await window.Auth.whenUnlocked()
+    : { supabaseKey: (cfg.SUPABASE_ANON_KEY || "").trim() };
+  const KEY = (gate.supabaseKey || "").trim();
+  if (!KEY) setStatus("offline", "Sync unavailable");
+  else boot(KEY);
 }
 
-async function boot() {
+async function boot(KEY) {
   setStatus("connecting", "Connecting…");
 
   let supabase;

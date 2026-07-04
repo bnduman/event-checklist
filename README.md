@@ -26,6 +26,9 @@ Data was imported from `Event Checklist BETA.xlsx` (sheets **2025** and **2026**
 - **Live team sync (optional)** — add Supabase credentials to `config.js` and the whole
   team edits one shared copy that updates in real time. A status pill in the top bar shows
   *Local only* / *Live sync on*. Setup: **[SUPABASE_SETUP.md](SUPABASE_SETUP.md)**.
+- **Password (optional)** — require one shared password to open the app (client-side
+  PBKDF2 + AES-GCM; also encrypts the Supabase key). Setup: **[PASSWORD_SETUP.md](PASSWORD_SETUP.md)**.
+  For un-bypassable edge login, see **[LOGIN_SETUP.md](LOGIN_SETUP.md)**.
 
 No build step and no bundler. Runs as plain static files; live sync (if enabled) loads the
 Supabase client from a CDN at runtime.
@@ -69,7 +72,9 @@ don't serve a stale copy after you redeploy. If you change `app.js`, `styles.css
 | `styles.css` | all styling |
 | `app.js` | views, editing, filtering, export |
 | `data.js` | seed data generated from the Excel file |
-| `config.js` | Supabase credentials for optional live sync (blank = single-browser mode) |
+| `config.js` | Supabase credentials + password settings (all blank = open, single-browser) |
 | `sync.js` | live shared-data layer (dormant unless `config.js` is filled in) |
+| `auth.js` | optional shared-password gate (dormant unless a password is set) |
+| `setup-password.html` | in-browser generator for the password config |
 | `generate_data.py` | regenerates `data.js` from the spreadsheet (edit `SRC`/`OUT` paths, needs `openpyxl`) |
 | `serve.py` | optional local dev server |
