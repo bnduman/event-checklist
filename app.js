@@ -34,7 +34,8 @@ function load() {
   return JSON.parse(JSON.stringify(window.SEED_DATA.years));
 }
 function save() {
-  localStorage.setItem(STORE_KEY, JSON.stringify({ years: data }));
+  // guarded: blocked storage (e.g. private mode) must not abort the edit or the sync push
+  try { localStorage.setItem(STORE_KEY, JSON.stringify({ years: data })); } catch (_) {}
   if (window.CloudSync && window.CloudSync.enabled) window.CloudSync.push(data); // live team sync (optional)
 }
 
@@ -258,7 +259,9 @@ function fmtDateShort(ev) {
   const s = `${String(d.getDate()).padStart(2, "0")} ${MONTHS_S[d.getMonth()]}`;
   if (ev.end && ev.end !== ev.start) {
     const e = parseISO(ev.end);
-    return `${d.getDate()}–${e.getDate()} ${MONTHS_S[e.getMonth()]}`;
+    return d.getMonth() === e.getMonth() && d.getFullYear() === e.getFullYear()
+      ? `${d.getDate()}–${e.getDate()} ${MONTHS_S[e.getMonth()]}`
+      : `${d.getDate()} ${MONTHS_S[d.getMonth()]} – ${e.getDate()} ${MONTHS_S[e.getMonth()]}`;
   }
   return s;
 }
@@ -407,6 +410,7 @@ popover.addEventListener("click", e => {
     }
   } else return;
   save();
+  refreshPersonFilter(); // a newly added person must show up in the filter dropdown too
   const { evId, chanKey } = popCtx;
   render(); // refresh views under the popover
   // re-anchor to the (re-rendered) chip and keep editing
@@ -533,6 +537,7 @@ document.getElementById("newChannels").innerHTML = CHANNELS.map(c =>
   `<label class="chan-toggle"><input type="checkbox" value="${c.key}" checked>${esc(c.label)}</label>`).join("");
 
 function openAddDialog() {
+  closePopover(); // never two editors at once
   document.getElementById("addForm").reset();
   document.getElementById("newStart").value = todayISO();
   document.getElementById("newChannels").querySelectorAll("input").forEach(i => (i.checked = true));
@@ -555,6 +560,7 @@ newType.addEventListener("change", () => { typeTouched = true; });
 // press "N" anywhere (outside a text field) to add an event
 document.addEventListener("keydown", e => {
   if (e.key.toLowerCase() !== "n" || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (window.Auth && !window.Auth.unlocked) return; // dialogs render in the top layer, above the lock screen
   const tag = (e.target.tagName || "").toLowerCase();
   if (tag === "input" || tag === "select" || tag === "textarea" || dlg.open) return;
   e.preventDefault();
@@ -573,7 +579,8 @@ document.getElementById("addForm").addEventListener("submit", () => {
   const channels = {};
   for (const c of CHANNELS) channels[c.key] = needed.has(c.key) ? null : "-";
   data[year].push({
-    id: "u" + Date.now().toString(36),
+    // random suffix: two synced teammates adding in the same millisecond must not collide
+    id: "u" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
     start, end, title,
     type: newType.value || guessType(title),
     channels,
@@ -593,7 +600,10 @@ function fmtDateCSV(ev) {
   const p2 = n => String(n).padStart(2, "0");
   if (ev.end && ev.end !== ev.start) {
     const e = parseISO(ev.end);
-    return `${p2(d.getDate())}.-${p2(e.getDate())}.${p2(e.getMonth() + 1)}.${e.getFullYear()}`;
+    const sameMonth = d.getMonth() === e.getMonth() && d.getFullYear() === e.getFullYear();
+    return sameMonth
+      ? `${p2(d.getDate())}.-${p2(e.getDate())}.${p2(e.getMonth() + 1)}.${e.getFullYear()}`
+      : `${p2(d.getDate())}.${p2(d.getMonth() + 1)}.-${p2(e.getDate())}.${p2(e.getMonth() + 1)}.${e.getFullYear()}`;
   }
   return `${p2(d.getDate())}.${p2(d.getMonth() + 1)}.${d.getFullYear()}`;
 }
@@ -608,7 +618,7 @@ document.getElementById("exportCsvBtn").addEventListener("click", () => {
     ]);
   }
   const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\r\n");
-  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" }); // explicit BOM escape so Excel detects UTF-8
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = `event-checklist-${state.year}.csv`;
