@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✓</text></svg>">
-<link rel="stylesheet" href="styles.css?v=5">
+<link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body>
 
@@ -19,6 +19,7 @@
     <h1>Event Checklist</h1>
     <p class="lock-sub">Enter the team password to continue</p>
     <input type="password" id="lockPassword" placeholder="Password" autocomplete="current-password" aria-label="Team password">
+    <label class="lock-show"><input type="checkbox" id="lockShow"> Show password</label>
     <button type="submit" class="btn btn-primary lock-btn">Unlock</button>
     <p id="lockError" class="lock-error" role="alert" aria-live="polite"></p>
   </form>
@@ -122,10 +123,10 @@
 <!-- floating quick-add button -->
 <button id="fabAdd" class="fab" title="Add event (press N)" aria-label="Add event">+</button>
 
-<script src="config.js?v=5"></script>
-<script src="auth.js?v=5"></script>
-<script src="data.js?v=5"></script>
-<script src="app.js?v=5"></script>
-<script type="module" src="sync.js?v=5"></script>
+<script src="config.js?v=6"></script>
+<script src="auth.js?v=6"></script>
+<script src="data.js?v=6"></script>
+<script src="app.js?v=6"></script>
+<script type="module" src="sync.js?v=6"></script>
 </body>
 </html>

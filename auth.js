@@ -64,21 +64,45 @@
   const form = document.getElementById("lockForm");
   const input = document.getElementById("lockPassword");
   const errEl = document.getElementById("lockError");
+  const btn = form.querySelector('button[type="submit"]');
+  const showToggle = document.getElementById("lockShow");
 
   overlay.hidden = false;
   document.body.style.overflow = "hidden";
   setTimeout(() => input.focus(), 40);
 
+  if (showToggle) showToggle.addEventListener("change", () => {
+    input.type = showToggle.checked ? "text" : "password";
+    input.focus();
+  });
+
+  // surface environment problems immediately instead of failing silently later
+  if (!(crypto && crypto.subtle)) {
+    errEl.textContent = "This browser blocks Web Crypto here — open the site via its https:// address.";
+  }
+
+  let busy = false;
   async function tryPassword(password, fromSession) {
+    if (busy) return;
+    busy = true;
     errEl.textContent = "";
+    btn.disabled = true;
+    const btnLabel = btn.textContent;
+    btn.textContent = "Checking…";
     let key;
     try {
       key = await deriveKey(password, b64ToBytes(AUTH.salt));
       const check = await decryptStr(key, AUTH.check);
-      if (check !== SENTINEL) throw new Error("bad password");
-    } catch (_) {
-      if (fromSession) { sessionStorage.removeItem(SESSION_KEY); return; }
-      errEl.textContent = "Incorrect password";
+      if (check !== SENTINEL) throw new DOMException("bad password", "OperationError");
+    } catch (e) {
+      busy = false;
+      btn.disabled = false;
+      btn.textContent = btnLabel;
+      if (fromSession) { try { sessionStorage.removeItem(SESSION_KEY); } catch (_) {} return; }
+      // AES-GCM auth failure = wrong password; anything else is an environment problem worth naming
+      errEl.textContent = (e && e.name === "OperationError")
+        ? "Incorrect password"
+        : "Couldn't verify — " + ((e && e.message) || e) + ". Try a hard refresh (Ctrl+F5).";
       input.value = "";
       input.focus();
       return;
@@ -99,7 +123,9 @@
 
   form.addEventListener("submit", (e) => { e.preventDefault(); tryPassword(input.value, false); });
 
-  // stay unlocked for the rest of this browser-tab session
-  const remembered = sessionStorage.getItem(SESSION_KEY);
+  // stay unlocked for the rest of this browser-tab session (storage access can
+  // itself throw under strict privacy settings — never let that kill the gate)
+  let remembered = null;
+  try { remembered = sessionStorage.getItem(SESSION_KEY); } catch (_) {}
   if (remembered) tryPassword(remembered, true);
 })();
